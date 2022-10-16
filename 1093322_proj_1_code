@@ -1,0 +1,80 @@
+.globl main 
+.data
+	endl:	.string"\n"
+	Input: .string"Input a number:\n"
+	Output: .string"\nThe damage:\n"
+.text
+main:
+	addi t3, zero, 10
+	addi t2, zero, 2
+	la a0, Input     #Input a num
+	li a7, 4
+	ecall 
+	li a7, 5         #a7是5 為ReadInt,值存於a0
+	ecall 
+	jal ra, function
+	la a0, Output
+	li a7, 4         #output string
+	ecall
+	addi a0, a1, 0   #store ans in a0
+	li a7,1          #output integer
+	ecall
+	li a7, 10        #exit
+	ecall
+function:		      #a1->total value a0->x value
+	addi sp, sp, -8
+	sw ra, 4(sp)
+	sw a0, 0(sp)
+	blt  a0, zero, CASE6        #otherwise
+	beq  a0, zero, CASE4        #x==0
+	addi t0, zero, 1	    
+	beq  a0, t0, CASE5	    #x==1
+	addi t0, t0, 9
+	ble  a0, t0, CASE3          #x>1 && x<=10
+	addi t0, t0, 10
+	ble  a0, t0, CASE2          #x>10 && x<=20
+	beq  zero , zero, CASE1     #x>20
+	addi sp, sp, 8
+	jalr zero, 0(ra)	    #return
+CASE1:
+	slli a0, a0, 1              #x*=2
+	addi t1, a0, 0              #remove to t1 
+	div  a0, a0, t3             
+	jal  ra, function           #F(x/5)
+	lw ra, 4(sp)                
+	lw a0, 0(sp)                #load original x and ra
+	add a1, a1, t1              #a1=2*x+F(5/x)
+	addi sp, sp, 8              #pop stack
+	jalr zero, 0(ra)	
+CASE2:
+	addi a0, a0, -2             
+	jal  ra, function           #F(X-2)
+	lw ra, 4(sp)
+	addi a0, a0, -1
+	jal  ra, function           #F(X-3)
+	lw ra, 4(sp)
+	lw a0, 0(sp)
+	addi sp, sp, 8
+	jalr zero, 0(ra)
+CASE3:
+	addi a0, a0, -1
+	jal  ra, function           #F(X-1)
+	lw ra, 4(sp)
+	addi a0, a0, -1
+	jal  ra, function           #F(X-2)
+	lw ra, 4(sp)
+	lw a0, 0(sp)
+	addi sp,sp,8
+	jalr zero, 0(ra)
+CASE4:
+	addi a1, a1, 1             #return 1
+	addi sp,sp,8
+	jalr zero, 0(ra)
+CASE5:
+	addi a1, a1, 5             #return 5
+	addi sp,sp,8
+	jalr zero, 0(ra)
+CASE6: 
+	addi a1, a1, -1            #return -1
+	addi sp,sp,8
+	jalr zero, 0(ra)
